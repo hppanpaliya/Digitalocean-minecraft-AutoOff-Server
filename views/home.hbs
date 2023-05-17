@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Control Droplet</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .circle {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #eee;
+        }
+
+        .circle .progress {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle .progress-bar {
+            border-radius: 50%;
+        }
+
+        .circle .progress-bar .percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title text-center">Droplet ID: {{dropletId}}</h1>
+                        <h2 class="text-center">Server Status: {{status}}</h2>
+                        <div class="row">
+                            <form id="decrease" action="/decrease" method="post" class="col-md-3 text-center">
+
+                            </form>
+
+                            <div class="col-md-6   text-center">
+                                <span id="timer"></span>
+
+                            </div>
+
+                            <form id="increase" action="/increase" method="post" class="col-md-3 text-center">
+
+                            </form>
+                        </div>
+
+                        <form action="/" method="get" class="p-3 row">
+                            <div class="form-group col-md-4">
+                                <label for="dropletIdInput">Enter Droplet ID:</label>
+                                <input type="text" class="form-control" id="dropletIdInput" name="dropletId">
+                            </div>
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-primary btn-block mt-4">Submit</button>
+                            </div>
+                        </form>
+
+                        <form action="/control-droplet" method="post" class="p-3 row">
+                            <input type="hidden" name="dropletId" value="{{dropletId}}">
+                            <input type="hidden" name="state" value="on">
+                            <div class="form-group col-md-4">
+                                <label for="timer">Timer (in hours):</label>
+                                <input type="number" class="form-control" id="timerInput" name="timer" min="0.25"
+                                    value="1" step="0.25">
+                            </div>
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-primary btn-block mt-4" id="turnOnButton">Turn On
+                                    Server which turns off in 1 hour</button>
+                            </div>
+                        </form>
+
+                        <form action="/control-droplet" method="post" class="p-3 row">
+                            <input type="hidden" name="dropletId" value="{{dropletId}}">
+                            <input type="hidden" name="state" value="off">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-danger btn-block">Turn Off Server Now</button>
+                            </div>
+                        </form>
+
+                        <form action="/cancel" method="post" class="p-3 row">
+                            <div class="form-group col-md-6">
+                                <label for="password">Password to cancel the timer:</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-warning btn-block mt-4">Cancel Timer</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const timerElement = document.getElementById('timer');
+        const timerInputElement = document.getElementById('timerInput');
+        const formDecrease = document.getElementById('decrease');
+        const formIncrease = document.getElementById('increase');
+
+
+
+        socket.on('timer', (remainingTime) => {
+            try {
+                console.log("remainingTime");
+                timerElement.textContent = "Turn Off in: " + secondsToHms(remainingTime);
+                timerInputElement.value = (remainingTime / 60 / 60).toFixed(2);
+                formDecrease.innerHTML = `<input type="hidden" name="dropletId" value="{{dropletId}}"> <button type="submit" class="btn btn-info btn-block">-15 Minutes</button>`;
+                formIncrease.innerHTML = `<input type="hidden" name="dropletId" value="{{dropletId}}"> <button type="submit" class="btn btn-info btn-block">+15 Minutes</button>`;
+            } catch (error) {
+                console.error("An error occurred while updating the timer:", error);
+                timerElement.textContent = "timer is off";
+            }
+        });
+
+
+
+        timerInputElement.addEventListener('change', function () {
+            turnOnButton.textContent = 'Turn On Server which turns off in ' + this.value + ' hours';
+            if (this.value <= 1) {
+                turnOnButton.textContent = 'Turn On Server which turns off in ' + this.value + ' hour';
+            }
+        });
+
+        function secondsToHms(d) {
+            d = Number(d);
+            var h = Math.floor(d / 3600);
+            var m = Math.floor(d % 3600 / 60);
+            var s = Math.floor(d % 3600 % 60);
+
+            var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+            var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+            var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+            return hDisplay + mDisplay + sDisplay ? hDisplay + mDisplay + sDisplay : 'Off';
+        }
+
+    </script>
+</body>
+
+</html>
