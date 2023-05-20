@@ -1,5 +1,5 @@
 {
-  "name": "digitalocean-minecraft",
+  "name": "digitalocean-server-controller",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
