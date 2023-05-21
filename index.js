@@ -20,10 +20,12 @@ app.use(express.static("public"));
 app.get("/", async (req, res) => {
   const dropletId = req.query.dropletId || defaultDropletId;
   let status = "";
+  let lastBootTime = "";
   if (dropletId) {
     status = await getDropletStatus(dropletId, process.env.DIGITALOCEAN_TOKEN);
+    lastBootTime = await getDropletBootTime(dropletId, process.env.DIGITALOCEAN_TOKEN);
   }
-  res.render("home", { dropletId, status, remainingTime });
+  res.render("home", { dropletId, status, remainingTime, lastBootTime });
 });
 
 app.post("/control-droplet", (req, res) => {
@@ -130,6 +132,31 @@ async function turnOffDroplet(dropletId, token) {
     console.log("Turned off droplet:", dropletId);
   } catch (error) {
     console.error("Error turning off droplet:", error);
+  }
+}
+
+async function getDropletBootTime(dropletId, token) {
+  try {
+    const eventsResponse = await axios.get(`https://api.digitalocean.com/v2/droplets/${dropletId}/actions`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const actions = eventsResponse.data.actions;
+    const rebootActions = actions.filter((action) => action.type === "power_off" || action.type === "power_on");
+
+    if (rebootActions.length > 0) {
+      const lastRebootAction = rebootActions[0];
+      const bootStartTime = new Date(lastRebootAction.started_at);
+
+      console.log(`Droplet ${dropletId} last booted at: ${bootStartTime}`);
+      return bootStartTime;
+    } else {
+      console.log(`Droplet ${dropletId} has no reboot actions.`);
+    }
+  } catch (error) {
+    console.error("Error retrieving droplet boot time:", error);
   }
 }
 
