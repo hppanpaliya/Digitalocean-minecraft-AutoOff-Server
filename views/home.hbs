@@ -46,6 +46,7 @@
                     <div class="card-body">
                         <h1 class="card-title text-center">Droplet ID: {{dropletId}}</h1>
                         <h2 class="text-center">Server Status: {{status}}</h2>
+                        <p class="text-center">{{lastBootTime}}</p>
                         <div class="row">
                             <form id="decrease" action="/decrease" method="post" class="col-md-3 text-center">
 
@@ -79,7 +80,7 @@
                                 <input type="number" class="form-control" id="timerInput" name="timer" min="0.25"
                                     value="1" step="0.25">
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-8 mt-2">
                                 <button type="submit" class="btn btn-primary btn-block mt-4" id="turnOnButton">Turn On
                                     Server which turns off in 1 hour</button>
                             </div>
