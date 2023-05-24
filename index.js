@@ -52,18 +52,19 @@ app.post("/cancel", (req, res) => {
   res.redirect("/");
 });
 app.post("/increase", (req, res) => {
-  // Increase the remainingTime by 15 minutes (900 seconds)
   remainingTime += 900;
+
+  // Make sure the remainingTime does not go above 12hrs
+
+  remainingTime = Math.min(remainingTime, 12 * 60 * 60);
 
   // Send the updated remaining time to the client
   io.emit("timer", remainingTime);
 
-  // Redirect to the home page or any other desired page
   res.redirect("/");
 });
 
 app.post("/decrease", (req, res) => {
-  // Decrease the remainingTime by 15 minutes (900 seconds)
   remainingTime -= 900;
 
   // Make sure the remainingTime does not go below zero
@@ -72,7 +73,6 @@ app.post("/decrease", (req, res) => {
   // Send the updated remaining time to the client
   io.emit("timer", remainingTime);
 
-  // Redirect to the home page or any other desired page
   res.redirect("/");
 });
 
@@ -162,6 +162,8 @@ async function getDropletBootTime(dropletId, token) {
 
 function startTimer(hours) {
   remainingTime = hours * 60 * 60;
+  // Make sure the remainingTime does not go above 3hrs
+  remainingTime = Math.min(remainingTime, 3 * 60 * 60);
   timerId = setInterval(() => {
     remainingTime--;
     io.emit("timer", remainingTime);
