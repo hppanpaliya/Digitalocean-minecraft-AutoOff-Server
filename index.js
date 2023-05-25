@@ -21,11 +21,15 @@ app.get("/", async (req, res) => {
   const dropletId = req.query.dropletId || defaultDropletId;
   let status = "";
   let lastBootTime = "";
+  let actionType = "";
   if (dropletId) {
     status = await getDropletStatus(dropletId, process.env.DIGITALOCEAN_TOKEN);
-    lastBootTime = await getDropletBootTime(dropletId, process.env.DIGITALOCEAN_TOKEN);
+    let dropletTime = await getDropletBootTime(dropletId, process.env.DIGITALOCEAN_TOKEN);
+    lastBootTime = dropletTime.lastBootTime;
+    actionType = dropletTime.actionType;
+    console.log("lastBootTime", lastBootTime, actionType);
   }
-  res.render("home", { dropletId, status, remainingTime, lastBootTime });
+  res.render("home", { dropletId, status, remainingTime, lastBootTime, actionType });
 });
 
 app.post("/control-droplet", (req, res) => {
@@ -148,10 +152,11 @@ async function getDropletBootTime(dropletId, token) {
 
     if (rebootActions.length > 0) {
       const lastRebootAction = rebootActions[0];
+      console.log(`Droplet ${dropletId} last reboot action type:`, lastRebootAction.type);
       const bootStartTime = new Date(lastRebootAction.started_at);
 
       console.log(`Droplet ${dropletId} last booted at: ${bootStartTime}`);
-      return bootStartTime;
+      return { lastBootTime: bootStartTime, actionType: lastRebootAction.type };
     } else {
       console.log(`Droplet ${dropletId} has no reboot actions.`);
     }
