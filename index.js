@@ -27,7 +27,13 @@ app.get("/", async (req, res) => {
     let dropletTime = await getDropletBootTime(dropletId, process.env.DIGITALOCEAN_TOKEN);
     lastBootTime = dropletTime.lastBootTime;
     actionType = dropletTime.actionType;
+    if (actionType === "power_on") {
+      actionType = "Turned on at";
+    } else if (actionType === "power_off") {
+      actionType = "Turned off at";
+    }
     console.log("lastBootTime", lastBootTime, actionType);
+    lastBootTime = new Date(lastBootTime).toLocaleString();
   }
   res.render("home", { dropletId, status, remainingTime, lastBootTime, actionType });
 });
