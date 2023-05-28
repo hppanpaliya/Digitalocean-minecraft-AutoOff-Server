@@ -17,6 +17,7 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd ${{ secrets.SSH_PATH }}
-          git pull
+          git pull 
           npm install
-          pm2 restart all
+          npm run pm2:stop
+          npm run pm2
